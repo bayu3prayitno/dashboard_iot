@@ -1,0 +1,24 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Plus Jakarta Sans Variable', ui-sans-serif, system-ui, sans-serif;
+  --color-primary: #1f6b45;
+  --color-primary-dark: #0f3d27;
+  --color-primary-light: #5bbf8a;
+  --color-primary-soft: #e6f2eb;
+  --color-canvas: #f4f5f4;
+  --color-ink: #17201b;
+  --color-muted: #6f7a74;
+  --color-line: #e7eae8;
+}
+
+body {
+  background: var(--color-canvas);
+  color: var(--color-ink);
+}
+
+button:not(:disabled),
+select,
+a {
+  cursor: pointer;
+}
