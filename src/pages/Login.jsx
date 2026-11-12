@@ -31,7 +31,7 @@ export default function Login() {
           </span>
           <span className="text-lg font-semibold">OmahIoT</span>
         </div>
-        <img src={`${import.meta.env.BASE_URL}plts-3D.png`} alt="" className="pointer-events-none mx-auto max-h-[52vh] object-contain drop-shadow-xl select-none" />
+        <img src={`${import.meta.env.BASE_URL}plts-3D.webp`} alt="" className="pointer-events-none mx-auto max-h-[52vh] object-contain drop-shadow-xl select-none" />
         <div>
           <p className="max-w-md text-4xl leading-tight font-medium tracking-tight uppercase">
             Monitoring PLTS Cerdas
