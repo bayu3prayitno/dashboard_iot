@@ -97,7 +97,7 @@ export default function Dashboard() {
       {/* Banner hero; margin negatif membuat header (cari + notifikasi) menumpang di atasnya */}
       <section className="hero-surface relative -mt-16 mb-4 overflow-hidden rounded-3xl px-5 pt-20 pb-5 sm:px-7 md:min-h-[25rem]">
         <img
-          src="/plts-3D.png"
+          src={`${import.meta.env.BASE_URL}plts-3D.png`}
           alt=""
           className="pointer-events-none mx-auto -mb-2 h-52 object-contain drop-shadow-xl select-none md:absolute md:top-1/2 md:left-[36%] md:mb-0 md:h-[112%] md:-translate-y-[46%] xl:left-[40%]"
         />
