@@ -5,10 +5,11 @@ import {
 import { TIMEZONES, fmtDateTime, fmtDay, fmtNum, fmtTime, fmtWeekday } from '../lib/format.js'
 import { Empty } from './ui.jsx'
 
-const AXIS = { fontSize: 11, fill: '#6f7a74' }
-const GRID = '#eceeed'
-const PRIMARY = '#1f6b45'
-const PRIMARY_LIGHT = '#5bbf8a'
+const AXIS = { fontSize: 11, fill: '#6f766f' }
+const GRID = '#eceeea'
+const DARK = '#262a26'
+const LIME = '#a8d93a'
+const LIME_DARK = '#6f9f12'
 
 function Tip({ active, payload, title, metric }) {
   const point = payload?.[0]?.payload
@@ -42,8 +43,8 @@ export function LineTrend({ data, metric, zone, height = 260 }) {
       <AreaChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
         <defs>
           <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={PRIMARY} stopOpacity={0.18} />
-            <stop offset="100%" stopColor={PRIMARY} stopOpacity={0} />
+            <stop offset="0%" stopColor={LIME} stopOpacity={0.45} />
+            <stop offset="100%" stopColor={LIME} stopOpacity={0} />
           </linearGradient>
         </defs>
         <CartesianGrid vertical={false} stroke={GRID} />
@@ -61,7 +62,7 @@ export function LineTrend({ data, metric, zone, height = 260 }) {
           content={<Tip metric={metric} title={(t) => fmtDateTime(t, zone)} />}
         />
         <Area
-          type="monotone" dataKey="value" stroke={PRIMARY} strokeWidth={2} fill={`url(#${id})`}
+          type="monotone" dataKey="value" stroke={LIME_DARK} strokeWidth={2} fill={`url(#${id})`}
           dot={false} activeDot={{ r: 4, stroke: '#fff', strokeWidth: 2 }}
           connectNulls={false} isAnimationActive={false}
         />
@@ -70,7 +71,24 @@ export function LineTrend({ data, metric, zone, height = 260 }) {
   )
 }
 
-/** Grafik batang rata-rata harian; batang tertinggi diberi aksen hijau muda. */
+/** Garis mini tanpa sumbu untuk kartu ringkasan. */
+export function Sparkline({ data, className }) {
+  const points = data.filter((d) => d.value != null)
+  if (points.length < 2) return null
+  const values = points.map((d) => d.value)
+  const min = Math.min(...values)
+  const span = Math.max(...values) - min || 1
+  const path = points
+    .map((d, i) => `${i ? 'L' : 'M'}${((i / (points.length - 1)) * 100).toFixed(1)} ${(26 - ((d.value - min) / span) * 24).toFixed(1)}`)
+    .join(' ')
+  return (
+    <svg viewBox="0 0 100 28" preserveAspectRatio="none" className={className} aria-hidden="true">
+      <path d={path} fill="none" stroke={LIME_DARK} strokeWidth="2" vectorEffect="non-scaling-stroke" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+/** Grafik batang rata-rata harian; batang tertinggi diberi aksen hijau limau. */
 export function DailyBars({ data, metric, zone, height = 260 }) {
   if (!hasData(data)) return <Empty>Belum ada data pada rentang ini.</Empty>
   const max = Math.max(...data.map((d) => d.value ?? -Infinity))
@@ -92,7 +110,7 @@ export function DailyBars({ data, metric, zone, height = 260 }) {
         />
         <Bar dataKey="value" radius={[8, 8, 0, 0]} maxBarSize={40} isAnimationActive={false}>
           {data.map((d) => (
-            <Cell key={d.t} fill={d.value === max ? PRIMARY_LIGHT : PRIMARY} />
+            <Cell key={d.t} fill={d.value === max ? LIME : DARK} />
           ))}
         </Bar>
       </BarChart>
@@ -109,7 +127,7 @@ export function Gauge({ percent, label }) {
       <path d="M20 100 A80 80 0 0 1 180 100" fill="none" stroke="#e7eae8" strokeWidth="20" strokeLinecap="round" />
       {percent != null && (
         <path
-          d="M20 100 A80 80 0 0 1 180 100" fill="none" stroke={PRIMARY} strokeWidth="20"
+          d="M20 100 A80 80 0 0 1 180 100" fill="none" stroke={LIME} strokeWidth="20"
           strokeLinecap="round" strokeDasharray={`${filled} ${length}`}
         />
       )}

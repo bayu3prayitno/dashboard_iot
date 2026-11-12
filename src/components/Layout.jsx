@@ -1,38 +1,71 @@
 import { useState } from 'react'
-import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import {
-  Bell, BellRing, Cpu, Download, History, LayoutDashboard, LogOut, Menu, Radio, Router,
-  ScrollText, Search, Settings, Users, X,
+  Bell, BellRing, Cpu, Download, History, LayoutGrid, LogOut, Menu, Router,
+  ScrollText, Search, Settings, Sun, Users,
 } from 'lucide-react'
 import { useApp } from '../context/store.js'
 import { NOW } from '../data/mock.js'
 import { exportCsv } from '../lib/data.js'
 import { alertText, cx, relTime } from '../lib/format.js'
 
-function NavItem({ to, icon: Icon, label, badge, onClick }) {
+const PAGE_NAMES = {
+  perangkat: 'Perangkat', histori: 'Histori', peringatan: 'Peringatan', gateway: 'Gateway',
+  pengguna: 'Pengguna', pengaturan: 'Pengaturan', log: 'Log Aktivitas', profil: 'Profil',
+}
+
+const ITEM =
+  'group relative flex items-center gap-3 rounded-2xl text-sm transition-colors text-white/60 hover:bg-white/10 hover:text-white'
+
+/** Label melayang untuk ikon pada mode rel (sidebar sempit). */
+function Hint({ children }) {
+  return (
+    <span className="pointer-events-none absolute left-full z-50 ml-3 hidden rounded-lg bg-primary-dark px-2.5 py-1.5 text-xs font-medium whitespace-nowrap text-white shadow-lg group-hover:block group-focus-visible:block">
+      {children}
+    </span>
+  )
+}
+
+function NavItem({ to, icon: Icon, label, badge, expanded, onClick }) {
   return (
     <NavLink
       to={to}
       end={to === '/'}
       onClick={onClick}
+      aria-label={label}
       className={({ isActive }) =>
-        cx(
-          'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors',
-          isActive ? 'bg-primary-soft font-semibold text-primary' : 'text-muted hover:bg-canvas hover:text-ink',
-        )
+        cx(ITEM, expanded ? 'px-3 py-2.5' : 'size-11 justify-center', isActive && 'bg-white/15 text-white')
       }
     >
-      <Icon size={18} />
-      <span className="flex-1">{label}</span>
+      <Icon size={19} />
+      {expanded ? <span className="flex-1 whitespace-nowrap">{label}</span> : <Hint>{label}</Hint>}
       {badge > 0 && (
-        <span className="rounded-md bg-primary px-1.5 py-0.5 text-[11px] font-semibold text-white">{badge}</span>
+        <span
+          className={cx(
+            'grid h-4.5 min-w-4.5 place-items-center rounded-full bg-lime px-1 text-[10px] font-bold text-ink',
+            !expanded && 'absolute -top-0.5 -right-0.5',
+          )}
+        >
+          {badge}
+        </span>
       )}
     </NavLink>
   )
 }
 
-function Sidebar({ onNavigate }) {
-  const { isSuper, activeAlerts, logout, visibleDevices, rowsOf, settings, notify } = useApp()
+function ActionItem({ icon: Icon, label, expanded, onClick }) {
+  return (
+    <button type="button" onClick={onClick} aria-label={label} className={cx(ITEM, expanded ? 'w-full px-3 py-2.5' : 'size-11 justify-center')}>
+      <Icon size={19} />
+      {expanded ? <span className="whitespace-nowrap">{label}</span> : <Hint>{label}</Hint>}
+    </button>
+  )
+}
+
+function Sidebar({ expanded, onNavigate, onToggle }) {
+  const { user, isSuper, activeAlerts, logout, visibleDevices, rowsOf, settings, notify } = useApp()
+  const initials = user.nama.split(' ').map((w) => w[0]).slice(0, 2).join('')
+  const shared = { expanded, onClick: onNavigate }
 
   const downloadLatest = () => {
     const rows = visibleDevices
@@ -43,49 +76,61 @@ function Sidebar({ onNavigate }) {
   }
 
   return (
-    <div className="flex h-full flex-col gap-6 overflow-y-auto p-5">
-      <Link to="/" onClick={onNavigate} className="flex items-center gap-2.5 px-1">
-        <span className="grid size-9 place-items-center rounded-xl bg-primary text-white">
-          <Radio size={18} />
-        </span>
-        <span className="text-lg font-semibold">OmahIoT</span>
-      </Link>
-
-      <nav className="space-y-1">
-        <p className="mb-2 px-3 text-[11px] font-medium tracking-wider text-muted">MENU</p>
-        <NavItem to="/" icon={LayoutDashboard} label="Dashboard" onClick={onNavigate} />
-        <NavItem to="/perangkat" icon={Cpu} label="Perangkat" onClick={onNavigate} />
-        <NavItem to="/histori" icon={History} label="Histori" onClick={onNavigate} />
-        <NavItem to="/peringatan" icon={BellRing} label="Peringatan" badge={activeAlerts.length} onClick={onNavigate} />
-        <NavItem to="/gateway" icon={Router} label="Gateway" onClick={onNavigate} />
-      </nav>
-
-      <nav className="space-y-1">
-        <p className="mb-2 px-3 text-[11px] font-medium tracking-wider text-muted">GENERAL</p>
-        {isSuper && <NavItem to="/pengguna" icon={Users} label="Pengguna" onClick={onNavigate} />}
-        {isSuper && <NavItem to="/pengaturan" icon={Settings} label="Pengaturan" onClick={onNavigate} />}
-        <NavItem to="/log" icon={ScrollText} label="Log Aktivitas" onClick={onNavigate} />
+    <div className={cx('flex h-full flex-col gap-1.5 bg-primary py-4 text-white lg:rounded-3xl', expanded ? 'overflow-x-hidden overflow-y-auto px-3' : 'items-center px-2')}>
+      {/* Desktop: logo menjadi tombol buka-tutup sidebar. Laci ponsel: logo menuju Dashboard. */}
+      {onToggle ? (
         <button
           type="button"
-          onClick={logout}
-          className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-muted hover:bg-canvas hover:text-ink"
+          onClick={onToggle}
+          aria-expanded={expanded}
+          aria-label={expanded ? 'OmahIoT, tutup sidebar' : 'OmahIoT, buka sidebar'}
+          className={cx('group relative mb-5 flex items-center gap-3 rounded-2xl text-left', expanded && 'w-full px-1')}
         >
-          <LogOut size={18} />
-          Logout
+          <span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-primary-dark text-lime transition-colors group-hover:bg-black">
+            <Sun size={22} />
+          </span>
+          {expanded ? <span className="text-lg font-semibold whitespace-nowrap">OmahIoT</span> : <Hint>Buka sidebar</Hint>}
         </button>
-      </nav>
+      ) : (
+        <Link to="/" onClick={onNavigate} aria-label="OmahIoT" className={cx('mb-5 flex items-center gap-3', expanded && 'px-1')}>
+          <span className="grid size-11 place-items-center rounded-2xl bg-primary-dark text-lime">
+            <Sun size={22} />
+          </span>
+          {expanded && <span className="text-lg font-semibold">OmahIoT</span>}
+        </Link>
+      )}
 
-      <div className="mt-auto rounded-2xl bg-primary-dark p-4 text-white">
-        <p className="text-sm font-semibold">Unduh CSV terbaru</p>
-        <p className="mt-1 text-xs text-white/70">Data 24 jam terakhir dari perangkat yang Anda kelola.</p>
-        <button
-          type="button"
-          onClick={downloadLatest}
-          className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-full bg-primary px-3 py-2 text-xs font-medium hover:bg-primary-light hover:text-primary-dark"
+      <NavItem to="/" icon={LayoutGrid} label="Dashboard" {...shared} />
+      <NavItem to="/perangkat" icon={Cpu} label="Perangkat" {...shared} />
+      <NavItem to="/histori" icon={History} label="Histori" {...shared} />
+      <NavItem to="/peringatan" icon={BellRing} label="Peringatan" badge={activeAlerts.length} {...shared} />
+      <NavItem to="/gateway" icon={Router} label="Gateway" {...shared} />
+
+      <span className={cx('my-2 h-px bg-white/15', expanded ? 'mx-2' : 'w-7')} />
+
+      {isSuper && <NavItem to="/pengguna" icon={Users} label="Pengguna" {...shared} />}
+      {isSuper && <NavItem to="/pengaturan" icon={Settings} label="Pengaturan" {...shared} />}
+      <NavItem to="/log" icon={ScrollText} label="Log Aktivitas" {...shared} />
+
+      <div className={cx('mt-auto flex flex-col gap-1.5', !expanded && 'items-center')}>
+        <ActionItem icon={Download} label="Unduh CSV 24 jam" expanded={expanded} onClick={downloadLatest} />
+        <ActionItem icon={LogOut} label="Logout" expanded={expanded} onClick={logout} />
+        <Link
+          to="/profil"
+          onClick={onNavigate}
+          aria-label={`Profil ${user.nama}`}
+          className={cx('group relative mt-2 flex items-center gap-3 rounded-2xl', expanded && 'px-1')}
         >
-          <Download size={14} />
-          Unduh
-        </button>
+          <span className="grid size-11 place-items-center rounded-2xl bg-lime text-sm font-bold text-ink">{initials}</span>
+          {expanded ? (
+            <span>
+              <span className="block text-sm leading-tight font-semibold">{user.nama}</span>
+              <span className="block text-xs text-white/60">{user.role}</span>
+            </span>
+          ) : (
+            <Hint>{user.nama} · {user.role}</Hint>
+          )}
+        </Link>
       </div>
     </div>
   )
@@ -102,16 +147,16 @@ function DeviceSearch() {
     : []
 
   return (
-    <div className="relative min-w-0 flex-1 sm:max-w-sm">
-      <Search size={16} className="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 text-muted" />
+    <div className="relative min-w-0 flex-1 sm:w-72 sm:flex-none">
+      <Search size={16} className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-muted" />
       <input
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         onFocus={() => setOpen(true)}
         onBlur={() => setOpen(false)}
-        placeholder="Cari perangkat (nama, ID, lokasi)"
-        aria-label="Cari perangkat"
-        className="w-full rounded-full bg-canvas py-2.5 pr-4 pl-10 text-sm outline-none focus:ring-2 focus:ring-primary/20"
+        placeholder="Cari perangkat…"
+        aria-label="Cari perangkat (nama, ID, lokasi)"
+        className="w-full rounded-full bg-white py-2.5 pr-4 pl-10 text-sm shadow-sm outline-none focus:ring-2 focus:ring-lime"
       />
       {open && q && (
         <div className="absolute top-full right-0 left-0 z-30 mt-2 rounded-2xl border border-line bg-white p-2 shadow-lg">
@@ -147,7 +192,7 @@ function Notifications() {
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-label={`Notifikasi, ${fresh.length} peringatan baru`}
-        className="relative grid size-10 place-items-center rounded-full bg-canvas hover:bg-primary-soft"
+        className="relative grid size-10 place-items-center rounded-full bg-white shadow-sm hover:bg-primary-soft"
       >
         <Bell size={18} />
         {fresh.length > 0 && (
@@ -163,12 +208,7 @@ function Notifications() {
             <p className="px-3 py-2 text-sm font-semibold">Peringatan baru</p>
             {fresh.length === 0 && <p className="px-3 pb-3 text-sm text-muted">Tidak ada peringatan baru.</p>}
             {fresh.slice(0, 5).map((a) => (
-              <Link
-                key={a.id}
-                to="/peringatan"
-                onClick={() => setOpen(false)}
-                className="block rounded-xl px-3 py-2 hover:bg-canvas"
-              >
+              <Link key={a.id} to="/peringatan" onClick={() => setOpen(false)} className="block rounded-xl px-3 py-2 hover:bg-canvas">
                 <span className="block text-sm font-medium">{devices.find((d) => d.id === a.device_id)?.nama}</span>
                 <span className="block text-xs text-muted">{alertText(a)} · {relTime(a.waktu)}</span>
               </Link>
@@ -181,49 +221,65 @@ function Notifications() {
 }
 
 export default function Layout() {
-  const { user, toast } = useApp()
+  const { toast } = useApp()
+  const { pathname } = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
-  const initials = user.nama.split(' ').map((w) => w[0]).slice(0, 2).join('')
+  // Sidebar desktop: terbuka secara default (ikon + label); klik logo untuk menutup/membuka.
+  // Pilihan terakhir diingat per browser.
+  const [expanded, setExpanded] = useState(() => {
+    try {
+      return localStorage.getItem('sidebar') !== 'closed'
+    } catch {
+      return true
+    }
+  })
+  const toggleSidebar = () => {
+    const next = !expanded
+    setExpanded(next)
+    try {
+      localStorage.setItem('sidebar', next ? 'open' : 'closed')
+    } catch {
+      // penyimpanan tidak tersedia; pilihan hanya berlaku sampai halaman dimuat ulang
+    }
+  }
+  const pageName = PAGE_NAMES[pathname.split('/')[1]] ?? 'Dashboard'
 
   return (
     <div className="mx-auto flex min-h-screen max-w-[1600px] gap-4 p-3 lg:p-4">
-      <aside className="sticky top-4 hidden h-[calc(100vh-2rem)] w-60 shrink-0 rounded-3xl bg-white lg:block">
-        <Sidebar />
+      <aside
+        className={cx(
+          'sticky top-4 z-30 hidden h-[calc(100vh-2rem)] shrink-0 rounded-3xl bg-primary transition-[width] duration-200 lg:block',
+          expanded ? 'w-60' : 'w-[4.5rem]',
+        )}
+      >
+        <Sidebar expanded={expanded} onToggle={toggleSidebar} />
       </aside>
 
       {menuOpen && (
-        <div className="fixed inset-0 z-40 bg-black/40 lg:hidden" onClick={() => setMenuOpen(false)}>
-          <aside className="h-full w-64 bg-white" onClick={(e) => e.stopPropagation()}>
-            <Sidebar onNavigate={() => setMenuOpen(false)} />
+        <div className="fixed inset-0 z-40 bg-black/50 lg:hidden" onClick={() => setMenuOpen(false)}>
+          <aside className="h-full w-64" onClick={(e) => e.stopPropagation()}>
+            <Sidebar expanded onNavigate={() => setMenuOpen(false)} />
           </aside>
-          <button type="button" aria-label="Tutup menu" className="absolute top-4 left-[17rem] rounded-full bg-white p-2">
-            <X size={18} />
-          </button>
         </div>
       )}
 
       <div className="min-w-0 flex-1">
-        <header className="mb-4 flex items-center gap-3 rounded-3xl bg-white p-3">
+        {/* Header transparan; di Dashboard ia menumpang di atas banner hero */}
+        <header className="relative z-20 flex h-16 items-center gap-3 px-1 sm:px-4">
           <button
             type="button"
             onClick={() => setMenuOpen(true)}
             aria-label="Buka menu"
-            className="grid size-10 shrink-0 place-items-center rounded-full bg-canvas lg:hidden"
+            className="grid size-10 shrink-0 place-items-center rounded-full bg-white shadow-sm lg:hidden"
           >
             <Menu size={18} />
           </button>
-          <DeviceSearch />
-          <div className="ml-auto flex items-center gap-3">
+          <p className="hidden items-center gap-2 text-sm text-muted sm:flex">
+            <LayoutGrid size={15} /> {pageName}
+          </p>
+          <div className="ml-auto flex min-w-0 flex-1 items-center justify-end gap-3">
+            <DeviceSearch />
             <Notifications />
-            <Link to="/profil" className="flex items-center gap-2.5 rounded-full py-1 pr-1 hover:bg-canvas sm:pr-4">
-              <span className="grid size-10 place-items-center rounded-full bg-primary text-sm font-semibold text-white">
-                {initials}
-              </span>
-              <span className="hidden text-left sm:block">
-                <span className="block text-sm leading-tight font-semibold">{user.nama}</span>
-                <span className="block text-xs text-muted">{user.role}</span>
-              </span>
-            </Link>
           </div>
         </header>
 
@@ -233,7 +289,7 @@ export default function Layout() {
       </div>
 
       {toast && (
-        <div role="status" className="fixed bottom-5 left-1/2 z-50 -translate-x-1/2 rounded-full bg-ink px-5 py-2.5 text-sm text-white shadow-lg">
+        <div role="status" className="fixed bottom-5 left-1/2 z-50 -translate-x-1/2 rounded-full bg-primary-dark px-5 py-2.5 text-sm text-white shadow-lg">
           {toast}
         </div>
       )}

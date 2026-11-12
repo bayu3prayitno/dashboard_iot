@@ -17,7 +17,7 @@ export function CardTitle({ children, action }) {
 
 const BUTTON = {
   primary: 'bg-primary text-white hover:bg-primary-dark',
-  outline: 'border border-primary text-primary hover:bg-primary-soft',
+  outline: 'border border-primary/25 text-ink hover:bg-primary-soft',
   ghost: 'text-muted hover:bg-canvas hover:text-ink',
   danger: 'border border-red-200 text-red-700 hover:bg-red-50',
 }
@@ -108,7 +108,7 @@ export function Tabs({ tabs, value, onChange }) {
           onClick={() => onChange(key)}
           className={cx(
             'rounded-xl px-3 py-1.5 text-sm font-medium transition-colors',
-            value === key ? 'bg-white text-primary shadow-sm' : 'text-muted hover:text-ink',
+            value === key ? 'bg-primary text-white shadow-sm' : 'text-muted hover:text-ink',
           )}
         >
           {label}

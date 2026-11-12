@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Navigate } from 'react-router-dom'
-import { Radio } from 'lucide-react'
+import { Sun } from 'lucide-react'
 import { Button, Field, Input } from '../components/ui.jsx'
 import { useApp } from '../context/store.js'
 
@@ -24,22 +24,22 @@ export default function Login() {
 
   return (
     <div className="grid min-h-screen p-3 lg:grid-cols-2 lg:p-4">
-      <div className="hidden flex-col justify-between rounded-3xl bg-primary-dark p-10 text-white lg:flex">
+      <div className="hero-surface relative hidden flex-col justify-between overflow-hidden rounded-3xl p-10 lg:flex">
         <div className="flex items-center gap-2.5">
-          <span className="grid size-9 place-items-center rounded-xl bg-primary">
-            <Radio size={18} />
+          <span className="grid size-10 place-items-center rounded-2xl bg-primary text-lime">
+            <Sun size={20} />
           </span>
           <span className="text-lg font-semibold">OmahIoT</span>
         </div>
+        <img src="/plts-3D.png" alt="" className="pointer-events-none mx-auto max-h-[52vh] object-contain drop-shadow-xl select-none" />
         <div>
-          <p className="max-w-md text-4xl leading-tight font-semibold">
-            Pantau node sensor dan gateway LoRa dari satu tempat.
+          <p className="max-w-md text-4xl leading-tight font-medium tracking-tight uppercase">
+            Monitoring PLTS Cerdas
           </p>
-          <p className="mt-4 max-w-md text-sm text-white/70">
-            Suhu, tegangan, arus, daya, dan irradiance tiap 5 menit, lengkap dengan histori, peringatan, dan kualitas link.
+          <p className="mt-3 max-w-md text-sm text-muted">
+            Suhu, tegangan, arus, daya, dan irradiance tiap 5 menit, lengkap dengan histori, peringatan, dan kualitas link LoRa.
           </p>
         </div>
-        <p className="text-xs text-white/50">Dashboard Monitoring IoT</p>
       </div>
 
       <div className="flex items-center justify-center p-4">

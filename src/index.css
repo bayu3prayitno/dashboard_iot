@@ -2,14 +2,17 @@
 
 @theme {
   --font-sans: 'Plus Jakarta Sans Variable', ui-sans-serif, system-ui, sans-serif;
-  --color-primary: #1f6b45;
-  --color-primary-dark: #0f3d27;
-  --color-primary-light: #5bbf8a;
-  --color-primary-soft: #e6f2eb;
-  --color-canvas: #f4f5f4;
-  --color-ink: #17201b;
-  --color-muted: #6f7a74;
-  --color-line: #e7eae8;
+  /* Tema "eco": arang gelap + hijau limau di atas abu-abu kehijauan muda */
+  --color-primary: #262a26;
+  --color-primary-dark: #171a17;
+  --color-primary-light: #a8d93a;
+  --color-primary-soft: #eef5dc;
+  --color-lime: #a8d93a;
+  --color-lime-dark: #6f9f12;
+  --color-canvas: #eceeea;
+  --color-ink: #1b1f1b;
+  --color-muted: #6f766f;
+  --color-line: #e4e7e2;
 }
 
 body {
@@ -21,4 +24,17 @@ button:not(:disabled),
 select,
 a {
   cursor: pointer;
+}
+
+/* Latar banner hero dan panel login */
+.hero-surface {
+  background:
+    radial-gradient(60% 90% at 62% 55%, rgb(255 255 255 / 0.55), transparent 70%),
+    linear-gradient(120deg, #e6eadf 0%, #d6ddcc 55%, #c2ccb6 100%);
+}
+
+.glass {
+  background: rgb(255 255 255 / 0.5);
+  border: 1px solid rgb(255 255 255 / 0.7);
+  backdrop-filter: blur(10px);
 }
